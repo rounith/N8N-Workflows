@@ -1,0 +1,203 @@
+{
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "63a44394-6866-48ee-a568-2a7ad0e61e7b",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1100,
+        460
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 3
+      },
+      "id": "42c6bd4d-60c4-40cd-9dc2-673c97f6b84c",
+      "name": "Wait 3s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "2254f43e-aa4c-4181-bd7e-4b4cf8399828"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.vapi.ai/call/",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer 034c0462-c96d-4129-8ca2-029c6c96f69e"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"assistantId\": \"6acda9bc-ef39-4a4c-84a3-0fdd38f2ab88\",\n  \"assistantOverrides\": {\n    \"variableValues\": {\n      \"first_name\": \"{{ $json.query.query.first_name }}\",\n      \"type\": \"{{ $json.query.query.type }}\",\n      \"instructions\": \"{{ $json.query.query.instructions }}\",\n      \"call_purpose\": \"{{ $json.query.query.call_purpose }}\",\n      \"response_style\": \"{{ $json.query.query.response_style }}\",\n      \"tone\": \"{{ $json.query.query.tone }}\",\n      \"pause_between_sentences\": \"{{ $json.query.query.pause_between_sentences }}\",\n      \"fallback_response\": \"{{ $json.query.query.fallback_response }}\"\n    }\n  },\n  \"customer\": {\n    \"number\": \"{{ $json.query.query.phone_number }}\",\n    \"name\": \"{{ $json.query.query.first_name }}\"\n  },\n  \"phoneNumberId\": \"75207c9a-a7c0-474f-b638-87838b5639bc\"\n}\n",
+        "options": {}
+      },
+      "id": "748105d1-8a14-4def-a280-f32a75b7a085",
+      "name": "Phone Call",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -880,
+        460
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "60e036f1-1320-418d-ac8a-86e3349da08e",
+              "name": "response",
+              "value": "={{ $json.analysis.summary }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "40ecbde1-e72c-433e-9830-7ad08f1c0d67",
+      "name": "Set Fields",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -160,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "url": "=https://api.vapi.ai/call/{{ $json.id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer 034c0462-c96d-4129-8ca2-029c6c96f69e"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "b0fdb157-e8c3-4298-82ae-a4835902197a",
+      "name": "Call Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -640,
+        460
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "3ea6e246-4cc2-4351-a07b-d2d4b61359f9",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "=ended",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "484300f8-e5d5-4d20-8828-7a27b2fd1afb",
+      "name": "Ongoing Call",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.1,
+      "position": [
+        -440,
+        460
+      ]
+    }
+  ],
+  "connections": {
+    "Execute Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "Phone Call",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 3s": {
+      "main": [
+        [
+          {
+            "node": "Call Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Phone Call": {
+      "main": [
+        [
+          {
+            "node": "Call Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Status": {
+      "main": [
+        [
+          {
+            "node": "Ongoing Call",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ongoing Call": {
+      "main": [
+        [
+          {
+            "node": "Wait 3s",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Set Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "instanceId": "f7dd6a36f0e4185777399383443a25b15b6d3823d9f3a52240e7af6d4fdec5b0"
+  }
+}

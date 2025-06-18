@@ -1,0 +1,276 @@
+{
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "a42160fa-5f2a-4d05-95c1-6c0def511341",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1060,
+        140
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7ab380a2-a8d3-421c-ab4e-748ea8fb7904",
+              "name": "response",
+              "value": "Unable to perform task. Please try again.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "106bf46b-973c-4e34-bf2c-9e82a11cabb6",
+      "name": "Try Again",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -60,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "39c2f302-03be-4464-a17a-d7cc481d6d44",
+              "name": "=response",
+              "value": "={{$json.output}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "ccd1b085-58d3-4299-ae3a-0e3b9c907a9e",
+      "name": "Success",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -80,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "rounithctrls@gmail.com",
+          "mode": "list",
+          "cachedResultName": "rounithctrls@gmail.com"
+        },
+        "start": "={{ $fromAI(\"starttime\",\"the time the user asks for the event to start\") }}",
+        "end": "={{ $fromAI(\"endtime\",\"the time the user asks for the event to end\") }}",
+        "additionalFields": {
+          "attendees": [],
+          "summary": "={{ $fromAI(\"name\",\"the name of the calendar event\") }}"
+        }
+      },
+      "id": "30de4ae9-0471-4bfa-b2e0-c51bdb59b08c",
+      "name": "Create Event",
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.1,
+      "position": [
+        -680,
+        380
+      ],
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "ymE63j337prhtrDi",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "rounithctrls@gmail.com",
+          "mode": "list",
+          "cachedResultName": "rounithctrls@gmail.com"
+        },
+        "start": "={{ $fromAI(\"starttime\",\"the time the user asks for the event to start\") }}",
+        "end": "={{ $fromAI(\"endtime\",\"the time the user asks for the event to end\") }}",
+        "additionalFields": {
+          "attendees": [
+            "={{ $fromAI(\"attendeeEmail\",\"the email of the user asks the event to be sceduled with\") }}"
+          ],
+          "summary": "={{ $fromAI(\"name\",\"the name of the calendar event\") }}"
+        }
+      },
+      "id": "65ba13ee-7697-4fe5-a682-9359bca062b9",
+      "name": "Create Event with Attendee",
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.1,
+      "position": [
+        -520,
+        380
+      ],
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "ymE63j337prhtrDi",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "calendar": {
+          "__rl": true,
+          "value": "rounithctrls@gmail.com",
+          "mode": "list",
+          "cachedResultName": "rounithctrls@gmail.com"
+        },
+        "returnAll": true,
+        "options": {
+          "timeMin": "={{ $fromAI(\"oneDayBefore\",\"one day before the day that the user requested\") }}",
+          "timeMax": "={{ $fromAI(\"oneDayAfter\",\"one day after the day that the user requested\") }}"
+        }
+      },
+      "id": "9de712c0-d442-4786-a730-9bb939d0cfad",
+      "name": "Get Events",
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.1,
+      "position": [
+        -820,
+        380
+      ],
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "ymE63j337prhtrDi",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.query }}",
+        "options": {
+          "systemMessage": "=You are a calendar assistant. You have access to multiple tools to take any action within calendar. Here is the current date/time: {{ $now }}\n\nCreate Event:\nIf an end date isn't specified for the event, assume it will be 60 minutes long. Use this tool if there is no attendee specified.\n\nCreate Event with Attendee:\nIf an end date isn't specified for the event, assume it will be 60 minutes long. Use this tool WHEN AN ATTENDEE IS SPECIFIED.\n\nGet Events:\nUse this tool to get events from a certain day and summarize them. Make sure you fetch just not canceled events."
+        }
+      },
+      "id": "8554000b-d2bd-4936-91f0-832d9bb05747",
+      "name": "Calendar Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.6,
+      "position": [
+        -840,
+        140
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "claude-sonnet-4-20250514",
+          "cachedResultName": "Claude 4 Sonnet"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.3,
+      "position": [
+        -960,
+        360
+      ],
+      "id": "44646b1c-5c7c-4500-a61f-1508abc25483",
+      "name": "Anthropic Chat Model",
+      "credentials": {
+        "anthropicApi": {
+          "id": "HVPHoCWYqY3vDUri",
+          "name": "Anthropic account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Execute Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "Calendar Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Event": {
+      "ai_tool": [
+        [
+          {
+            "node": "Calendar Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Event with Attendee": {
+      "ai_tool": [
+        [
+          {
+            "node": "Calendar Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Events": {
+      "ai_tool": [
+        [
+          {
+            "node": "Calendar Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calendar Agent": {
+      "main": [
+        [
+          {
+            "node": "Success",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Try Again",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Anthropic Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Calendar Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f7dd6a36f0e4185777399383443a25b15b6d3823d9f3a52240e7af6d4fdec5b0"
+  }
+}
