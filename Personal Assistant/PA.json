@@ -1,0 +1,686 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "name": "Knowledge_Base",
+        "description": "Call this tool to get information about my company."
+      },
+      "id": "d5197f98-8219-4633-bf9b-3fe4c03397c9",
+      "name": "Knowledge Base",
+      "type": "@n8n/n8n-nodes-langchain.toolVectorStore",
+      "typeVersion": 1,
+      "position": [
+        2020,
+        460
+      ]
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Get row(s) in sheet in Google Sheets",
+        "documentId": {
+          "__rl": true,
+          "value": "1lm9M1zDfwVQyUK5-hohDzoGMnJJv1NhQtgcgH-XhEHs",
+          "mode": "list",
+          "cachedResultName": "Contacts",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1lm9M1zDfwVQyUK5-hohDzoGMnJJv1NhQtgcgH-XhEHs/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1lm9M1zDfwVQyUK5-hohDzoGMnJJv1NhQtgcgH-XhEHs/edit#gid=0"
+        },
+        "options": {}
+      },
+      "id": "5e899529-d914-4dda-9e9e-e5f397b5541c",
+      "name": "Contacts Data",
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.5,
+      "position": [
+        1460,
+        520
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "bwweN99oE3XU5Es1",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Listen for incoming events').first().json.message.from.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "id": "c2d38cf4-58f0-4229-a75d-2712d904d050",
+      "name": "Respond to Me",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2040,
+        80
+      ],
+      "webhookId": "59625d03-4fda-4130-ae7f-4894ccc6d7f8",
+      "credentials": {
+        "telegramApi": {
+          "id": "Gl7qTOt0fg2mpEYV",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "updates": [
+          "*"
+        ],
+        "additionalFields": {}
+      },
+      "id": "73b5bacf-ec8f-4125-b9ca-968aa005a34e",
+      "name": "Listen for incoming events",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "position": [
+        -440,
+        260
+      ],
+      "webhookId": "322dce18-f93e-4f86-b9b1-3305519b7834",
+      "typeVersion": 1,
+      "credentials": {
+        "telegramApi": {
+          "id": "Gl7qTOt0fg2mpEYV",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{$json.message.voice.file_id}}"
+      },
+      "id": "24b03dcb-0e27-4bac-8fb1-0a844714b10d",
+      "name": "Download voice file",
+      "type": "n8n-nodes-base.telegram",
+      "position": [
+        60,
+        380
+      ],
+      "typeVersion": 1.2,
+      "webhookId": "08250cc3-cbfe-4cb0-9b83-942d77d12906",
+      "credentials": {
+        "telegramApi": {
+          "id": "Gl7qTOt0fg2mpEYV",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "bccbce0a-7786-49c9-979a-7a285cb69f78",
+              "name": "CombinedMessage",
+              "type": "string",
+              "value": "={{ $json.message && $json.message.text ? $json.message.text : ($json.text ? $json.text : '') }}"
+            },
+            {
+              "id": "5b1fc9f5-1408-4099-88cc-a23725c9eddb",
+              "name": "Message Type ",
+              "type": "string",
+              "value": "={{ $json?.message?.text && !$json?.text ? \"text query\" : (!$json?.message?.text && $json?.text ? \"voice message\" : \"unknown type message\") }}"
+            },
+            {
+              "id": "1e9a17fa-ec5d-49dc-9ff6-1f28b57fb02e",
+              "name": "Source Type",
+              "type": "string",
+              "value": "={{ $('Listen for incoming events').item.json.message.forward_origin ? \" forwarded\" : \"\" }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "c516c783-9ea2-4fba-84bd-2c4a3a201775",
+      "name": "Combine content and set properties",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        1140,
+        100
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Listen for incoming events').first().json.message.from.id }}",
+        "text": "=Sorry, {{ $('Listen for incoming events').first().json.message.from.first_name }}! This command is not supported yet. Please send text or voice messages.",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "e0dde02a-1557-4c2c-87b7-e6de026de4ad",
+      "name": "Send error message",
+      "type": "n8n-nodes-base.telegram",
+      "position": [
+        -220,
+        540
+      ],
+      "typeVersion": 1.2,
+      "webhookId": "c219800e-42ba-4ca6-ba25-07eda647ea98",
+      "credentials": {
+        "telegramApi": {
+          "id": "Gl7qTOt0fg2mpEYV",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "sendChatAction",
+        "chatId": "={{ $('Listen for incoming events').first().json.message.from.id }}"
+      },
+      "id": "e6100c21-e72a-450f-8b84-89bcbeeb436c",
+      "name": "Send Typing action",
+      "type": "n8n-nodes-base.telegram",
+      "position": [
+        -180,
+        80
+      ],
+      "typeVersion": 1.2,
+      "webhookId": "fd992425-5d02-40c8-a179-c0e2b4f98d97",
+      "credentials": {
+        "telegramApi": {
+          "id": "Gl7qTOt0fg2mpEYV",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "version": 2,
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "operator": {
+                      "type": "string",
+                      "operation": "notEmpty",
+                      "singleValue": true
+                    },
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "/"
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "Text"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "version": 2,
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "dd41bbf0-bee0-450b-9160-b769821a4abc",
+                    "operator": {
+                      "type": "object",
+                      "operation": "exists",
+                      "singleValue": true
+                    },
+                    "leftValue": "={{ $json.message.voice}}",
+                    "rightValue": ""
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "Voice"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "id": "a1984466-414f-461a-b827-167f5a769df0",
+      "name": "Determine content type",
+      "type": "n8n-nodes-base.switch",
+      "position": [
+        -200,
+        280
+      ],
+      "typeVersion": 3.2
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "operation": "transcribe",
+        "options": {
+          "language": "",
+          "temperature": 0.7
+        }
+      },
+      "id": "ae69c84d-d548-4dc4-b23e-553224d7908f",
+      "name": "Convert audio to text",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "position": [
+        900,
+        380
+      ],
+      "typeVersion": 1.5,
+      "credentials": {
+        "openAiApi": {
+          "id": "2YCYSZmjtQldg8vO",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "name": "Calendar_Agent",
+        "description": "Call this tool to take actions within Calendar",
+        "workflowId": {
+          "__rl": true,
+          "value": "0vBc9gJYA3iJ5sos",
+          "mode": "list",
+          "cachedResultName": "CalendarAgent"
+        }
+      },
+      "id": "23553e55-a08a-4ad1-b897-bbfe125f0626",
+      "name": "Calendar Agent",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1640,
+        580
+      ]
+    },
+    {
+      "parameters": {
+        "name": "Email_Agent",
+        "description": "Call this tool to take any email actions",
+        "workflowId": {
+          "__rl": true,
+          "value": "KLifODuorqjN4a4M",
+          "mode": "list",
+          "cachedResultName": "EmailAgent"
+        }
+      },
+      "id": "c8383ede-107c-4beb-9b16-73db8bf18708",
+      "name": "Email Agent",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1860,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Listen for incoming events').item.json.message.chat.id }}"
+      },
+      "id": "e48b4989-6292-4c98-8443-ec5965fc9d2c",
+      "name": "Window Buffer Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.2,
+      "position": [
+        1280,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "text-embedding-3-small",
+          "mode": "list",
+          "cachedResultName": "text-embedding-3-small"
+        },
+        "options": {
+          "pineconeNamespace": "=Adaptify AI SOP"
+        }
+      },
+      "id": "1f44730e-216a-4e17-9308-23a7a0532d0a",
+      "name": "Pinecone Vector Store",
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1,
+      "position": [
+        1920,
+        760
+      ],
+      "credentials": {
+        "pineconeApi": {
+          "id": "IXRsBuHp4R9xZBBv",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.CombinedMessage }}",
+        "options": {
+          "systemMessage": "=#Role\n\nYou are Olivia, Nikhil's personal assistant. Your primary role is to delegate tasks to the appropriate tool—you do not complete tasks yourself. Instead, you ensure that each request is routed correctly, with all necessary details passed to the right tool for execution.\n\n## Tools:\n\n- Phone Call Agent → Initiates phone calls by following provided instructions, ensuring clear and effective communication.\n\nContacts Data: For any task involving communication (e.g., calls, emails, or scheduling), always retrieve and verify contact details using the Contacts Data tool before passing them to the relevant agent.\n\nEmail Agent: Use this for handling all email-related actions, such as sending messages, setting up replies, or forwarding emails. Only send emails to verified email addresses found in the Contacts list. Always sign emails as \"Nikhil\" and NEVER use placeholders like \"[Your Name].\"\n\nIf an email address for a recipient cannot be found in the Contacts list, do not attempt to send the email or use placeholder addresses like \"@example.com\". \n\nCalendar Agent: Use this for scheduling, updating, or managing calendar events.\n\n\n### How to Use the Phone Call Agent:\n\nIf the user wants to make a phone call, trigger the Phone call Agent tool.\nEnsure the following details are passed to the calling agent:\nfirst_name → The name of the person or business being called.\ntype → The contact type (e.g., \"Doctor,\" \"Client,\" \"Supplier\").\ninstructions → A clear, concise description of what needs to be discussed or achieved on the call.\nphone_number → Must be formatted in E.164 format (e.g., \"+xxxxxxxxxxxx\").\ncall_purpose → The reason for the call.\nresponse_style → Determines whether responses should be concise or detailed.\ntone → Defines how the assistant should sound (e.g., friendly, professional).\npause_between_sentences → Controls the pacing of speech.\nfallback_response → A predefined response if the assistant is unsure of an answer.\nThe calling agent already understands it is a personal assistant making the call, so only provide essential details—avoid unnecessary context or explanations.\n\nExample Usage:\nUser Input: \"Call my accountant to ask about tax deductions for this year.\"\n\nAction:\n\nFirst, fetch the accountant’s phone number from the Contacts Data tool.\nEnsure the number is in E.164 format (e.g., \"+xxxxxxxxxxxx\").\nInvoke the Phone call Agent tool, passing the following details:\n\n{\n  \"first_name\": \"Mark Dan\",\n  \"type\": \"Accountant\",\n  \"instructions\": \"Ask about available tax deductions for this year and clarify if there are any changes in tax regulations that might affect Damian.\",\n  \"phone_number\": \"+xxxxxxxxxxxx\",\n  \"call_purpose\": \"Tax deduction inquiry\",\n  \"response_style\": \"concise\",\n  \"tone\": \"friendly\",\n  \"pause_between_sentences\": \"short\",\n  \"fallback_response\": \"I'm not sure, but I'll check with Nikhil and get back to you.\"\n}\nResponse to User: \"I spoke with Mark. He will send over a list of tax deductions by the end of the day.\"\n\n\n\n#### Rules & Best Practices:\nAlways respond in English.\nAlways delegate tasks using the correct tool—never complete them manually.\nIf a request requires contact details, fetch them first before proceeding.\nDo not include user questions in emails or phone call instructions.\nKeep responses clear, structured, and professional.\nEnsure efficient and proactive delegation to maintain a seamless workflow.\n\nWhen a task requires using one or more of these tools, make sure to identify which tool is most appropriate, pass along the relevant details, and execute the actions needed to complete the task. Your goal is to be proactive, precise, and organized in managing these resources to provide a smooth experience for the user.\n\nHere is the current time/date: {{ $now.format('DD')}}\n\n"
+        }
+      },
+      "id": "e28af810-7afa-446c-961d-57c03745e52f",
+      "name": "Personal Assistant",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.6,
+      "position": [
+        1600,
+        80
+      ],
+      "retryOnFail": false
+    },
+    {
+      "parameters": {
+        "name": "phone_call_agent",
+        "description": "Use this tool to call someone.\n",
+        "workflowId": {
+          "__rl": true,
+          "value": "pa2wKv0LsdfvSWxn",
+          "mode": "list",
+          "cachedResultName": "PhoneCallAgent"
+        },
+        "specifyInputSchema": true,
+        "jsonSchemaExample": "{\n  \"query\": {\n    \"first_name\": \"\",\n    \"type\": \"\",\n    \"instructions\": \"\",\n    \"phone_number\": \"\",\n    \"call_purpose\": \"\",\n    \"response_style\": \"concise\",\n    \"tone\": \"friendly\",\n    \"pause_between_sentences\": \"short\",\n    \"fallback_response\": \"I'm not sure, but I'll check with Nikhil and get back to you.\"\n  }\n}\n\n"
+      },
+      "id": "77acfe89-830a-421b-9a4b-296c41b8d717",
+      "name": "Phone Call Agent",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1740,
+        820
+      ]
+    },
+    {
+      "parameters": {
+        "modelName": "models/text-embedding-004"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1940,
+        920
+      ],
+      "id": "a8d30a63-dc37-4377-a9dc-166ecee2df58",
+      "name": "Embeddings Google Gemini",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "O0xmZIPVDGlJbReP",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "claude-sonnet-4-20250514",
+          "cachedResultName": "Claude 4 Sonnet"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.3,
+      "position": [
+        2160,
+        680
+      ],
+      "id": "b8a18698-eee9-473c-a76c-e98234f4aef2",
+      "name": "Anthropic Chat Model1",
+      "credentials": {
+        "anthropicApi": {
+          "id": "HVPHoCWYqY3vDUri",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "claude-sonnet-4-20250514",
+          "cachedResultName": "Claude 4 Sonnet"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.3,
+      "position": [
+        1320,
+        260
+      ],
+      "id": "0379efee-40c4-4a3e-98e8-db95cfc60fda",
+      "name": "Anthropic Chat Model2",
+      "credentials": {
+        "anthropicApi": {
+          "id": "HVPHoCWYqY3vDUri",
+          "name": "Anthropic account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Knowledge Base": {
+      "ai_tool": [
+        [
+          {
+            "node": "Personal Assistant",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Contacts Data": {
+      "ai_tool": [
+        [
+          {
+            "node": "Personal Assistant",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Listen for incoming events": {
+      "main": [
+        [
+          {
+            "node": "Determine content type",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send Typing action",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download voice file": {
+      "main": [
+        [
+          {
+            "node": "Convert audio to text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Combine content and set properties": {
+      "main": [
+        [
+          {
+            "node": "Personal Assistant",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Determine content type": {
+      "main": [
+        [
+          {
+            "node": "Combine content and set properties",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Download voice file",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send error message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert audio to text": {
+      "main": [
+        [
+          {
+            "node": "Combine content and set properties",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calendar Agent": {
+      "ai_tool": [
+        [
+          {
+            "node": "Personal Assistant",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Agent": {
+      "ai_tool": [
+        [
+          {
+            "node": "Personal Assistant",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Window Buffer Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Personal Assistant",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store": {
+      "ai_vectorStore": [
+        [
+          {
+            "node": "Knowledge Base",
+            "type": "ai_vectorStore",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Personal Assistant": {
+      "main": [
+        [
+          {
+            "node": "Respond to Me",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Phone Call Agent": {
+      "ai_tool": [
+        [
+          {
+            "node": "Personal Assistant",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Google Gemini": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Anthropic Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Knowledge Base",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Anthropic Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Personal Assistant",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f7dd6a36f0e4185777399383443a25b15b6d3823d9f3a52240e7af6d4fdec5b0"
+  }
+}
